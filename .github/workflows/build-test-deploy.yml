@@ -1,0 +1,6 @@
+name: Mise en production
+
+on:
+  push:
+    branches:
+      - main
