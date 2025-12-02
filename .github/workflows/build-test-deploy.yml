@@ -1,9 +1,12 @@
-name: Mise en production
+name: Génrérer JAR et déployer en prod
 
 on:
   push:
     branches:
       - main
+
+env:
+  MAVEN_OPTS: "-Dmaven.repo.local=~dependances/lib/"
 
 jobs:
   build:
@@ -31,4 +34,33 @@ jobs:
       with:
         name: helloworld-${{ vars.PROJECT_VERSION }}
         path: target/*.jar
-      
+
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    continue-on-error: true
+
+    steps:
+      - name: Récupérer le cache Maven
+        uses: actions/cache@v4
+        with:
+          path: $MAVEN_OPTS
+          key: librairies
+
+      - uses: actions/checkout@main
+
+      - name: Lancer les tests
+        run: mvn test
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [build, test]
+
+    steps:
+      - name: Télécharger le code compilé
+        uses: actions/download-artifact@v4
+        with:
+          name: helloworld-${{ vars.PROJECT_VERSION }}
+
+      - name: Déployer en production
+        run: echo "Déploiement en production du JAR helloworld-${{ vars.PROJECT_VERSION }}.jar"
