@@ -6,28 +6,28 @@ on:
       - main
 
 env:
-  MAVEN_OPTS: "-Dmaven.repo.local=~dependances/lib/"
+  MAVEN_OPTS: "-Dmaven.repo.local=${{github.workspace}}/.m2/repository"
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@main
+    - uses: actions/checkout@v6.0.0
     - name: Set up JDK 17
       uses: actions/setup-java@v4.5.0
       with:
         java-version: '17'
         distribution: zulu
 
-    - name: Build le projet
-      run: mvn clean package -DskipTests
-
     - name: Mettre les dépendences en cache
       uses: actions/cache@v4
       with:
-        path: $MAVEN_OPTS
+        path: ${{github.workspace}}/.m2/repository
         key: librairies
+
+    - name: Build le projet
+      run: mvn clean package -DskipTests
 
     - name: Upload dans l'artifact
       uses: actions/upload-artifact@v4.4.3
@@ -41,13 +41,17 @@ jobs:
     continue-on-error: true
 
     steps:
+      - uses: actions/checkout@v6.0.0
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4.5.0
+        with:
+          java-version: '17'
+          distribution: zulu
       - name: Récupérer le cache Maven
         uses: actions/cache@v4
         with:
-          path: $MAVEN_OPTS
+          path: ${{github.workspace}}/.m2/repository
           key: librairies
-
-      - uses: actions/checkout@main
 
       - name: Lancer les tests
         run: mvn test
